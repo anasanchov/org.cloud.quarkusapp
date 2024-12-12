@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Demanda</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #d6eaf8; /* Azul clarito */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 450px;
+            border: 1px solid #ccc;
+        }
+        h1 {
+            text-align: center;
+            font-size: 26px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 1px solid #b0bec5;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            font-size: 16px;
+            color: #333;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        .message {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .message.success {
+            color: #27ae60;
+        }
+        .message.error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Generar Demanda</h1>
+    <form id="pdfForm" enctype="multipart/form-data">
+        <input type="file" id="pdfFile" name="pdf" accept=".pdf" required />
+        <button type="submit">Generar Demanda</button>
+    </form>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    document.getElementById('pdfForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData();
+        const fileInput = document.getElementById('pdfFile');
+        const messageDiv = document.getElementById('message');
+
+        if (fileInput.files.length === 0) {
+            messageDiv.textContent = 'Por favor, selecciona un archivo PDF.';
+            messageDiv.className = 'message error';
+            return;
+        }
+
+        formData.append('pdf', fileInput.files[0]);
+
+        fetch('/analizar-contrato', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al procesar el contrato.');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            // Crear un enlace de descarga para el archivo generado
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ContratoGenerado.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            messageDiv.textContent = 'Demanda generada con éxito.';
+            messageDiv.className = 'message success';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messageDiv.textContent = 'Hubo un problema al generar la demanda.';
+            messageDiv.className = 'message error';
+        });
+    });
+</script>
+
+</body>
+</html>
