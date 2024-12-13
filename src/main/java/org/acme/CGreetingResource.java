@@ -31,8 +31,12 @@ public class CGreetingResource {
         // Cargar la plantilla y rellenarla con los datos
         PdfGenerator pdfGenerator = new PdfGenerator();
         String templateText = pdfGenerator.loadTemplate();
-        String content = pdfGenerator.fillTemplate(templateText, pdfFormFiller.getSellerDict());
-        content = pdfGenerator.fillTemplate(content, pdfFormFiller.getBuyerDict());
+        String content = pdfGenerator.fillTemplate(templateText, pdfFormFiller.sellerDict);
+        content = pdfGenerator.fillTemplate(content, pdfFormFiller.buyerDict);
+
+        /*String templateText = pdf_generator.loadTemplate();
+        String content = pdf_generator.fillTemplate(templateText,pdf_form_filler.sellerDict);
+        content = pdf_generator.fillTemplate(content,pdf_form_filler.buyerDict);*/
 
         // Crear el PDF de salida
         String outputFilePath = "src/tmp/tempContrato.pdf";

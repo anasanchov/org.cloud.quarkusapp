@@ -39,10 +39,10 @@ public class PdfFormFiller {
         sellerDict = getInfoMap(sellerInfo,false);
         buyerDict = getInfoMap(buyerInfo, true);
 
-        // System.out.println(INIT_SELLER_TEXT);
-        // System.out.println(sellerDict.toString());
-        // System.out.println(INIT_BUYER_TEXT);
-        // System.out.println(buyerDict.toString());
+        //System.out.println(INIT_SELLER_TEXT);
+        //System.out.println(sellerDict.toString());
+        //System.out.println(INIT_BUYER_TEXT);
+        //System.out.println(buyerDict.toString());
 
         // testerino
         // String[] name = getNameAndSurnamesFromFullnam(sellerDict.get("name"));
