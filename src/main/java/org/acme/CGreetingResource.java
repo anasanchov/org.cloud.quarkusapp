@@ -41,9 +41,14 @@ public class CGreetingResource {
         // Crear el PDF de salida
         String outputFilePath = "src/tmp/tempContrato.pdf";
         pdfGenerator.createPdf(content);
+        String PDFtext = PdfFormFiller.extractTextFromPdf(tempFilePath);
+        String[] clausulas = PdfFormFiller.getClausesArrayFromText(PDFtext);
+        String JSONAmandar = JsonGenerator.generateJson(clausulas);
+        System.out.println(JSONAmandar);
 
         // Devolver el archivo generado como respuesta
         File outputFile = new File(outputFilePath);
+        HttpClientUtil.sendJsonToEvaluate(JSONAmandar);
         return Response.ok(outputFile)
                 .header("Content-Disposition", "attachment; filename=ContratoGenerado.pdf")
                 .build();

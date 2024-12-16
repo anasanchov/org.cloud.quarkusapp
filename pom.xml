@@ -69,6 +69,11 @@
             <artifactId>jersey-media-multipart</artifactId>
             <version>2.35</version> <!-- Versión de Jersey que coincida con tu proyecto -->
         </dependency>
+        <dependency> <!--Para usar JSON-->
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.10.1</version>
+        </dependency>
         <!-- Apache PDFBox for PDF manipulation -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
