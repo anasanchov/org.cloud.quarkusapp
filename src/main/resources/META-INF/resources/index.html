@@ -29,6 +29,12 @@
             color: #2c3e50;
             margin-bottom: 20px;
         }
+        h2{
+            text-align: center;
+            font-size: 20px;
+            color: #4e5662;
+            margin-bottom: 20px;
+        }
         input[type="file"] {
             width: 100%;
             padding: 12px;
@@ -64,17 +70,51 @@
         .message.error {
             color: #e74c3c;
         }
+        .structure {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .structure h3 {
+            color: #34495e;
+        }
+        .structure ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .structure li {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Generar Demanda</h1>
+    <h1>Analizar contrato</h1>
+    <h2>Analizador de contrato que genera demandas automáticamente si encuentra cláusulas abusivas</h2>
+    
+    <!-- Formulario -->
     <form id="pdfForm" enctype="multipart/form-data">
         <input type="file" id="pdfFile" name="pdf" accept=".pdf" required />
-        <button type="submit">Generar Demanda</button>
+        <button type="submit">Analizar Contrato</button>
     </form>
+    
+    <!-- Mensaje de éxito/error -->
     <div class="message" id="message"></div>
+    
+    <!-- Estructura del contrato -->
+    <div class="structure">
+        <h3>Estructura esperada para el contrato:</h3>
+        <ul id="contractStructure">
+            <li>1. Identificación de las partes: Debe contener los datos completos de las partes involucradas.</li>
+            <li>2. Cláusulas principales: Incluye derechos y obligaciones de ambas partes.</li>
+            <li>3. Firma: Debe incluir la firma de ambas partes.</li>
+            <li>4. Fecha: Es necesario que esté indicada la fecha de firma.</li>
+        </ul>
+        <p id="structureMessage" style="font-size: 14px; color: #e74c3c;"></p>
+    </div>
 </div>
 
 <script>
@@ -84,6 +124,10 @@
         const formData = new FormData();
         const fileInput = document.getElementById('pdfFile');
         const messageDiv = document.getElementById('message');
+        const structureMessageDiv = document.getElementById('structureMessage');
+
+        // Limpiar mensaje previo de estructura
+        structureMessageDiv.textContent = '';
 
         if (fileInput.files.length === 0) {
             messageDiv.textContent = 'Por favor, selecciona un archivo PDF.';
@@ -108,17 +152,25 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ContratoGenerado.pdf';
+            a.download = 'ContratoGenerado.pdf'; //CAMBIAR EL NOMBRE A DEMANDA
             a.click();
             URL.revokeObjectURL(url);
 
-            messageDiv.textContent = 'Demanda generada con éxito.';
+            messageDiv.textContent = 'Se ha encontrado al menos una cláusula abusiva. Demanda generada con éxito.';
             messageDiv.className = 'message success';
+
+            // Mostrar información sobre la estructura detectada
+            structureMessageDiv.textContent = 'El contrato cumple con la estructura deseada.';
+            structureMessageDiv.style.color = '#27ae60'; // Color verde para éxito
         })
         .catch(error => {
             console.error('Error:', error);
-            messageDiv.textContent = 'Hubo un problema al generar la demanda.';
+            messageDiv.textContent = 'No se ha detectado un contrato con la estructura deseada. \n Revisar información de estructura.';
             messageDiv.className = 'message error';
+
+            // Mostrar mensaje de error de estructura
+            structureMessageDiv.textContent = 'El contrato no cumple con la estructura esperada. Por favor revisa los elementos clave.';
+            structureMessageDiv.style.color = '#e74c3c'; // Color rojo para error
         });
     });
 </script>
