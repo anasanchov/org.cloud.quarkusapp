@@ -63,6 +63,11 @@ public class PdfFormFiller {
         Dictionary<String, String> dict = new Hashtable<>();
 
         String[] pepet = info.split(",");
+        /*System.out.println("\n");
+        System.out.println("PEPET");
+        System.out.println(Arrays.toString(pepet));  // Imprime los elementos del arreglo
+        System.out.println("\n");*/
+
         /// condicional ternari equivaldira a ->
         /// if(isBuyer){prefix = "buyer"} else { prefix = "seller"}
         String prefix = isBuyer ? "buyer" : "seller";
@@ -70,9 +75,9 @@ public class PdfFormFiller {
 
         dict.put(interpolateStrings(prefix,"name"), getFullName(pepet[0]));
         dict.put(interpolateStrings(prefix,"DNI"), getDni(pepet[1]));
-        dict.put(interpolateStrings(prefix,"city"), getCity(pepet[2]));
-        dict.put(interpolateStrings(prefix,"street"), getStreet(pepet[3]));
-        dict.put(interpolateStrings(prefix,"num"), getNum(pepet[4]));
+        dict.put(interpolateStrings(prefix,"street"), getStreet(pepet[2]));
+        dict.put(interpolateStrings(prefix,"num"), getNum(pepet[3]));
+        dict.put(interpolateStrings(prefix,"city"), getCity(pepet[4]));
         dict.put(interpolateStrings(prefix,"CP"), getCP(pepet[5]));
 
         // recuperar valors del dict --> dict.get("name");
@@ -92,24 +97,26 @@ public class PdfFormFiller {
         return fullName.split(" ");
     }
 
-    private static String getDni(String sentece) {
-        return sentece.replace("con N.I.F. nº ", "");
+    private static String getDni(String sentence) {
+        return sentence.replace("con N.I.F. nº ", "");
     }
 
-    private static String getCity(String sentece) {
-        return sentece.replace("y domicilio en ", "");
+    private static String getCity(String sentence) {
+        //return sentece.replace("y domicilio en ", "");
+        return sentence;
     }
 
     private static String getStreet(String sentence) {
-        return sentence.replace("calle ", "");
+        return sentence.replace("domicilio en ", "");
     }
 
     private static String getNum(String sentence) {
-        return sentence.replace("nº ", "");
+        //return sentence.replace("nº ", "");
+        return sentence;
     }
 
     private static String getCP(String sentence) {
-        return sentence.replace("C.P. ", "").trim();
+        return sentence.replace("C.P. ", "").replaceAll("\\.$", "").trim();
     }
     public static String[] getClausesArrayFromText(String text) {
 

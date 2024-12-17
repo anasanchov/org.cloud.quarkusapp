@@ -119,6 +119,90 @@
 
 <script>
     document.getElementById('pdfForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const formData = new FormData();
+    const fileInput = document.getElementById('pdfFile');
+    const messageDiv = document.getElementById('message');
+    const structureMessageDiv = document.getElementById('structureMessage');
+
+    // Limpiar mensaje previo de estructura
+    structureMessageDiv.textContent = '';
+
+    if (fileInput.files.length === 0) {
+        messageDiv.textContent = 'Por favor, selecciona un archivo PDF.';
+        messageDiv.className = 'message error';
+        return;
+    }
+
+    formData.append('pdf', fileInput.files[0]);
+
+    fetch('/analizar-contrato', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (response.ok) {
+            // Verificar si la respuesta es un archivo PDF o texto
+            const contentType = response.headers.get('Content-Type');
+            if (contentType && contentType.startsWith('application/pdf')) {
+                // Si es un PDF, manejarlo como blob
+                return response.blob();
+            } else {
+                // Si no es PDF, tratarlo como texto (mensaje de éxito o error)
+                return response.text();
+            }
+        } else {
+            throw new Error('Error al procesar el contrato.');
+        }
+    })
+    .then(responseContent => {
+        const contentType = typeof responseContent;
+
+        // Si la respuesta es un archivo PDF
+        if (contentType === 'object' && responseContent instanceof Blob) {
+            // Crear un enlace de descarga para el archivo generado
+            const url = URL.createObjectURL(responseContent);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ContratoGenerado.pdf'; // Cambiar nombre a Demanda si lo deseas
+            a.click();
+            URL.revokeObjectURL(url);
+
+            messageDiv.textContent = 'Se ha encontrado al menos una cláusula abusiva. Demanda generada con éxito.';
+            messageDiv.className = 'message success';
+
+            // Mostrar información sobre la estructura detectada
+            structureMessageDiv.textContent = 'El contrato cumple con la estructura deseada.';
+            structureMessageDiv.style.color = '#27ae60'; // Color verde para éxito
+        } 
+        // Si la respuesta es un mensaje de texto
+        else if (contentType === 'string') {
+            messageDiv.textContent = responseContent; // Mensaje de éxito cuando no hay violaciones
+            messageDiv.className = 'message success';
+
+            // Mostrar información sobre la estructura detectada
+            structureMessageDiv.textContent = 'El contrato cumple con la estructura deseada.';
+            structureMessageDiv.style.color = '#27ae60'; // Color verde para éxito
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.textContent = 'No se ha detectado un contrato con la estructura deseada. \n Revisar información de estructura.';
+        messageDiv.className = 'message error';
+
+        // Mostrar mensaje de error de estructura
+        structureMessageDiv.textContent = 'El contrato no cumple con la estructura esperada. Por favor revisa los elementos clave.';
+        structureMessageDiv.style.color = '#e74c3c'; // Color rojo para error
+    });
+});
+
+
+</script>
+
+<!--
+<script>
+    document.getElementById('pdfForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
         const formData = new FormData();
@@ -174,6 +258,6 @@
         });
     });
 </script>
-
+-->
 </body>
 </html>

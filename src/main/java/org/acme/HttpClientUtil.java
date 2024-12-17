@@ -24,7 +24,7 @@ public class HttpClientUtil {
         // Devolver la respuesta como String
         return response.body();
     }
-    public static void sendJsonToEvaluate(String json) {
+    public static String sendJsonToEvaluate(String json) {
         try {
 
             // URL del endpoint
@@ -32,12 +32,14 @@ public class HttpClientUtil {
 
             // Enviar la solicitud POST
             String response = HttpClientUtil.sendPostRequest(url, json);
-
+            //System.out.println("\n");
             // Imprimir la respuesta
-            System.out.println("Respuesta del servidor: " + response);
+            //System.out.println("Respuesta del servidor: " + response);
+            return response;
 
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 }

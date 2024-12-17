@@ -28,7 +28,6 @@ public class PdfGenerator {
 
     public String fillTemplate(String template, Dictionary<String, String> data) {
     // Rellenar la plantilla con los datos proporcionados
-        System.out.println(data);
         Enumeration<String> keys = data.keys();
         while (keys.hasMoreElements()) {
             String key = keys.nextElement();
