@@ -4,6 +4,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,11 +13,11 @@ import java.util.Enumeration;
 import java.util.Map;
 
 public class PdfGenerator {
-
+    /*
     public String loadTemplate() {
         // Aquí cargamos la plantilla de texto que servirá para llenar los datos
         return "Contrato de compra-venta\nVendedor: {{seller_name}}\nDirección: {{seller_street}} {{seller_num}}, {{seller_city}} {{seller_CP}}\nComprador: {{buyer_name}}\nDirección: {{buyer_street}} {{buyer_num}}, {{buyer_city}} {{buyer_CP}}";
-    }
+    } */
 
     /*public String fillTemplate(String template, Map<String, String> data) {
         // Rellenar la plantilla con los datos proporcionados
@@ -25,6 +26,19 @@ public class PdfGenerator {
         }
         return template;
     }*/
+
+    //public final static String PDF_PATH = "src/assets/DEMANDA JV - SIN POSTULACIÓN.pdf";
+    public final static String PDF_PATH = "src/assets/plantilla.pdf";
+
+    //transformamos el pdf en un String para poder modificarlo
+    public static String loadTemplate() throws IOException{
+        File file = new File(PDF_PATH);
+        //PDDocument doc = Loader.loadPDF(file);
+        PDDocument doc = PDDocument.load(file);
+
+        PDFTextStripper stripper = new PDFTextStripper();
+        return  stripper.getText(doc);
+    }
 
     public String fillTemplate(String template, Dictionary<String, String> data) {
     // Rellenar la plantilla con los datos proporcionados

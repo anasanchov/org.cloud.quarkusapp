@@ -125,7 +125,7 @@ public class PdfFormFiller {
 
         String clauseInfo = text.substring(initClause, endClause);
 
-        String[] clauses = clauseInfo.split(".-");
+        String[] clauses = clauseInfo.split(".-.");
         String[] result = new String[clauses.length - 1];
 
         // comencem per el 1 perque el primer item dek array es PRIMERA

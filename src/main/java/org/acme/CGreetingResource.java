@@ -65,8 +65,10 @@ public class CGreetingResource {
         if (isViolation) {
             //System.out.println("¡Hay al menos una violación en las cláusulas!");
             // Cargar la plantilla y rellenarla con los datos
+            System.out.println("CLAUSULAS: "+ clauses);
             PdfGenerator pdfGenerator = new PdfGenerator();
             String templateText = pdfGenerator.loadTemplate();
+            System.out.println("TEMPLATE: "+templateText);
             String content = pdfGenerator.fillTemplate(templateText, pdfFormFiller.sellerDict);
             content = pdfGenerator.fillTemplate(content, pdfFormFiller.buyerDict);
 
