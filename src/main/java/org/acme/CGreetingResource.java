@@ -26,7 +26,7 @@ public class CGreetingResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response analyzeContract(@FormDataParam("pdf") InputStream uploadedInputStream) throws Exception {
         // Guardar el archivo temporalmente
-        String tempFilePath = "src/temp/tempContrato.pdf";
+        String tempFilePath = "/src/temp/tempContrato.pdf";
         File tempFile = new File(tempFilePath);
         Files.copy(uploadedInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // Usar REPLACE_EXISTING para reemplazar archivo si ya existe
 
