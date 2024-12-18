@@ -12,8 +12,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Path("/analizar-contrato")
@@ -47,34 +50,49 @@ public class CGreetingResource {
 
         // Convertir el JSON en una lista de mapas
         List<Map<String, Object>> clauses = gson.fromJson(responseServer, listType);
+
+        // Lista para almacenar las cláusulas violadas
+        List<Map<String, Object>> violatedClauses = new ArrayList<>();
         
         boolean isViolation = false;
         // Recorrer la lista y procesar cada entrada
         for (Map<String, Object> clause : clauses) {
-            //String clauseText = (String) clause.get("clause");
             boolean violation = (boolean) clause.get("violation");
-            //System.out.println("Clause: " + clauseText);
-            //System.out.println("Violation: " + violation);
-
             if(violation){
                 isViolation = true;
-                break;
+                violatedClauses.add(clause); // Almacenar la cláusula violada
             }
         }
 
         if (isViolation) {
-            //System.out.println("¡Hay al menos una violación en las cláusulas!");
+            // Lista para almacenar los artículos y sus leyes correspondientes
+            List<Map<String, String>> articlesWithLaws = new ArrayList<>();
+
+            // Set para almacenar los artículos que ya han sido procesados
+            Set<String> processedArticles = new HashSet<>();
+
+            //Cargar csv
+            LeyesExtractor leyesExtractor = new LeyesExtractor("src/assets/csv_leyes.csv");
+            for (Map<String, Object> violatedClause : violatedClauses) {
+                String article = (String) violatedClause.get("article"); // Convertir el Object a String
+                if(!processedArticles.contains(article)){
+                    String ley = leyesExtractor.obtenerTextoLey(article);
+                    Map<String, String> articleWithLaw = Map.of("article", article, "ley", ley);
+                    articlesWithLaws.add(articleWithLaw);
+                    processedArticles.add(article);
+                }
+            }
+
             // Cargar la plantilla y rellenarla con los datos
-            System.out.println("CLAUSULAS: "+ clauses);
             PdfGenerator pdfGenerator = new PdfGenerator();
             String templateText = pdfGenerator.loadTemplate();
-            System.out.println("TEMPLATE: "+templateText);
             String content = pdfGenerator.fillTemplate(templateText, pdfFormFiller.sellerDict);
             content = pdfGenerator.fillTemplate(content, pdfFormFiller.buyerDict);
+            content = pdfGenerator.fillArticles(content, articlesWithLaws);
 
             // Crear el PDF de salida
             String outputFilePath = "src/tmp/tempContrato.pdf";
-            pdfGenerator.createPdf(content);
+            pdfGenerator.createPdf(content, outputFilePath);
 
             // Devolver el archivo generado como respuesta
             File outputFile = new File(outputFilePath);
@@ -85,18 +103,11 @@ public class CGreetingResource {
             .build();
 
         } else {
-            //System.out.println("No se han encontrado ninguna violación en las cláusulas.");
-
             String messageOk = "No se han encontrado ninguna violación en las cláusulas.";
             return Response.ok(messageOk)
             .type("text/plain")  // Establecer explícitamente el tipo de contenido
             .build();
         }
-
-
-        /*return Response.ok(outputFile)
-                .header("Content-Disposition", "attachment; filename=ContratoGenerado.pdf")
-                .build();*/
     }
 }
 //Hay que revisar como sacar la info de cada uno .

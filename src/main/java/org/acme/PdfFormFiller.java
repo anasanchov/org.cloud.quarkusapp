@@ -42,18 +42,6 @@ public class PdfFormFiller {
         sellerDict = getInfoMap(sellerInfo,false);
         buyerDict = getInfoMap(buyerInfo, true);
 
-        //System.out.println(INIT_SELLER_TEXT);
-        //System.out.println(sellerDict.toString());
-        //System.out.println(INIT_BUYER_TEXT);
-        //System.out.println(buyerDict.toString());
-
-        // testerino
-        // String[] name = getNameAndSurnamesFromFullnam(sellerDict.get("name"));
-
-        // for(int i = 0 ; i < name.length;i++){
-        // System.out.println(name[i]);
-        // }
-
         doc.close();
 
         return true;
@@ -63,13 +51,6 @@ public class PdfFormFiller {
         Dictionary<String, String> dict = new Hashtable<>();
 
         String[] pepet = info.split(",");
-        /*System.out.println("\n");
-        System.out.println("PEPET");
-        System.out.println(Arrays.toString(pepet));  // Imprime los elementos del arreglo
-        System.out.println("\n");*/
-
-        /// condicional ternari equivaldira a ->
-        /// if(isBuyer){prefix = "buyer"} else { prefix = "seller"}
         String prefix = isBuyer ? "buyer" : "seller";
 
 

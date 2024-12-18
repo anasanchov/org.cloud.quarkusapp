@@ -74,6 +74,11 @@
         <artifactId>gson</artifactId>
         <version>2.10.1</version>
         </dependency>
+        <dependency> <!--Para usar el opencsv-->
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.7.1</version>
+        </dependency>
         <!-- Apache PDFBox for PDF manipulation -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

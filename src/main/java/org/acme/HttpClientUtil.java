@@ -32,9 +32,6 @@ public class HttpClientUtil {
 
             // Enviar la solicitud POST
             String response = HttpClientUtil.sendPostRequest(url, json);
-            //System.out.println("\n");
-            // Imprimir la respuesta
-            //System.out.println("Respuesta del servidor: " + response);
             return response;
 
         } catch (Exception e) {
