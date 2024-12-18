@@ -42,6 +42,7 @@ public class CGreetingResource {
         String JSONAmandar = JsonGenerator.generateJson(clausulas);
         
         String responseServer = HttpClientUtil.sendJsonToEvaluate(JSONAmandar);
+        System.out.println(responseServer);
 
         Gson gson = new Gson();
         // Definir el tipo para mapear el JSON como una lista de Map<String, Object>
