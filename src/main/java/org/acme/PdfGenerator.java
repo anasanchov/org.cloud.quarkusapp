@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Map;
@@ -32,7 +33,7 @@ public class PdfGenerator {
         return  stripper.getText(doc);
     }
 
-    public String fillTemplate(String template, Dictionary<String, String> data) {
+    public static String fillTemplate(String template, Dictionary<String, String> data) {
     // Rellenar la plantilla con los datos proporcionados
         Enumeration<String> keys = data.keys();
         while (keys.hasMoreElements()) {
@@ -49,12 +50,12 @@ public class PdfGenerator {
         return template;
     }
 
-    public String fillArticles(String template, List<Map<String, String>> articlesWithLaws) {
+    public static String fillArticles(String template, List<Map<String, String>> articlesWithLaws) {
         // Añadir los artículos y leyes en el apartado VII
         StringBuilder fondoDeLaPretension = new StringBuilder();
     
         // Máxima longitud de línea para el ajuste de texto
-        int maxLineLength = 80; // Ajustar según lo necesario para el tamaño del espacio en tu PDF
+        int maxLineLength = 90; // Ajustar según lo necesario para el tamaño del espacio en tu PDF
     
         // Iterar sobre los artículos y leyes
         for (Map<String, String> articleWithLaw : articlesWithLaws) {
@@ -69,13 +70,13 @@ public class PdfGenerator {
         }
     
         // Reemplazar el marcador {articulo}{texto_articulo} en el template
-        template = template.replace("{articulo}{texto_articulo}", fondoDeLaPretension.toString());
+        template = template.replace("{{articulo}}{{texto_articulo}}", fondoDeLaPretension.toString());
     
         return template;
     }
     
     // Método para dividir el texto largo en líneas de longitud adecuada
-    private String wrapText(String text, int maxLineLength) {
+    private static String wrapText(String text, int maxLineLength) {
         StringBuilder wrappedText = new StringBuilder();
         String[] words = text.split(" ");
         StringBuilder currentLine = new StringBuilder();
@@ -103,7 +104,7 @@ public class PdfGenerator {
     }
     
     
-
+    
     private static String removeSpecialCharacters(String test) {
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < test.length(); i++) {
@@ -113,56 +114,106 @@ public class PdfGenerator {
         }
         return b.toString();
     }
-
     public static void createPdf(String content, String outputFilePath) throws IOException {
         PDDocument document = new PDDocument();
-
-        PDPage page = new PDPage(PDRectangle.A4);
-
-        document.addPage(page);
-
-        // Seleccionar la fuente Times Roman de PDType1Font
+    
+        // Definir márgenes
+        float marginTop = 72;     // 2.5 cm = 72 puntos
+        float marginBottom = 72;  // 2.5 cm
+        float marginLeft = 72; 
+    
+        // Configuración de página A4
+        PDRectangle pageSize = PDRectangle.A4;
+        //float pageWidth = pageSize.getWidth();
+        float pageHeight = pageSize.getHeight();
+    
+        // Configuración de fuente
         PDType1Font font = PDType1Font.TIMES_ROMAN;
-        
-        // Start a new content stream which will "hold" the to be created content
-        PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
-        // Define a text content stream using the selected font, moving the cursor and
-        // drawing the text "Hello World"
-        contentStream.beginText();
-        contentStream.setFont(font, 12);
-        String[] textList = content.split("\n");
-        int y = 800;
-        contentStream.newLineAtOffset(25, 800);
-        for(int i =0; i < textList.length;i++ ){
-
-            //contentStream.newLineAtOffset(100, y);
-            contentStream.showText(removeSpecialCharacters(textList[i]));
-            contentStream.newLineAtOffset(0, -15);
-            
-            y -= 15;
-
-            if(y <= 0){
-                
-                PDPage page2 = new PDPage(PDRectangle.A4);
-                document.addPage(page2);
-                contentStream.endText();
-                contentStream.close();
-                contentStream = new PDPageContentStream(document, page2);
-                contentStream.beginText();
-                contentStream.setFont(font, 12);
-                contentStream.newLineAtOffset(25, 800);
-                y = 800;
-                //contentStream.newLineAtOffset(25, 800);
+        float fontSize = 12;
+        float lineHeight = fontSize + 2; // Altura de línea
+    
+        // Preparar contenido
+        String[] lines = content.split("\n");
+    
+        // Lista para almacenar líneas procesadas
+        List<String> processedLines = new ArrayList<>();
+        for (String line : lines) {
+            String cleanLine = removeSpecialCharacters(line);
+            if (!cleanLine.isEmpty()) {
+                processedLines.add(cleanLine);
             }
         }
-        
-        contentStream.endText();
-
-        // Make sure that the content stream is closed:
-        contentStream.close();
-
-        document.save(outputFilePath);// File path);
+    
+        // Variables para gestión de páginas
+        int lineIndex = 0;
+        boolean isFirstPage = true;  // Para identificar la primera página
+    
+        // Iniciar ciclo para procesar las páginas
+        while (lineIndex < processedLines.size()) {
+            // Crear nueva página
+            PDPage currentPage = new PDPage(pageSize);
+            document.addPage(currentPage);
+    
+            // Iniciar stream de contenido
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, currentPage)) {
+                contentStream.beginText();
+    
+                float currentY = pageHeight - marginTop;
+                contentStream.newLineAtOffset(marginLeft, currentY); // Coloca el cursor al principio
+    
+                // Imprimir la primera línea de la página
+                String lineToPrint = processedLines.get(lineIndex);
+    
+                if (isFirstPage) {
+                    // La primera página, primera línea en negrita y tamaño 14
+                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+                    isFirstPage = false;  // Después de la primera página, cambiamos el estado
+                } else {
+                    // En las siguientes páginas, primera línea normal y tamaño 12
+                    contentStream.setFont(font, fontSize);
+                }
+    
+                // Imprimir la línea
+                contentStream.showText(lineToPrint);
+                lineIndex++;  // Aumentar el índice para la siguiente línea
+                currentY -= lineHeight + 10;  // Ajustar espacio después de la primera línea (mayor espacio)
+                contentStream.newLineAtOffset(0, -(lineHeight + 10)); // Mover al siguiente texto
+    
+                // Volver a la fuente normal para el resto del contenido
+                contentStream.setFont(font, fontSize);
+    
+                // Imprimir las siguientes líneas en la página
+                while (lineIndex < processedLines.size() && currentY > marginBottom) {
+                    String nextLine = processedLines.get(lineIndex);
+    
+                    // Verificar si la línea está completamente en mayúsculas
+                    if (nextLine.equals(nextLine.toUpperCase())) {
+                        // Añadir salto de línea antes de la línea en mayúsculas
+                        currentY -= lineHeight;  // Ajusta el salto de línea
+                        contentStream.newLineAtOffset(0, -lineHeight); // Mueve al siguiente espacio
+                        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12); // Negrita, tamaño 12
+                    } else {
+                        contentStream.setFont(font, fontSize); // Fuente normal, tamaño 12
+                    }
+    
+                    contentStream.showText(nextLine);
+    
+                    // Mover a siguiente línea (actualizar currentY)
+                    currentY -= lineHeight;
+                    contentStream.newLineAtOffset(0, -lineHeight);
+    
+                    lineIndex++;
+                }
+    
+                contentStream.endText(); // Finaliza el bloque de texto
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    
+        // Guardar documento
+        document.save(outputFilePath);
         document.close();
     }
+    
 }

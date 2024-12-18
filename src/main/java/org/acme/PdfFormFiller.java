@@ -2,12 +2,10 @@ package org.acme;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+
 public class PdfFormFiller {
     public static final String INIT_SELLER_TEXT = "VENDEDORA:";
     public static final String END_SELLER_TEXT = "De otra parte";
@@ -72,10 +70,6 @@ public class PdfFormFiller {
 
     private static String getFullName(String sentence) {
         return sentence.replace("D. ", "").replace("Dª. ", "");
-    }
-
-    private static String[] getNameAndSurnamesFromFullnam(String fullName) {
-        return fullName.split(" ");
     }
 
     private static String getDni(String sentence) {
