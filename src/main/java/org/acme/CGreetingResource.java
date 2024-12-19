@@ -24,9 +24,10 @@ public class CGreetingResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    /*
     public Response analyzeContract(@FormDataParam("pdf") InputStream uploadedInputStream) throws Exception {
         // Guardar el archivo temporalmente
-        String tempFilePath = "/src/temp/tempContrato.pdf";
+        String tempFilePath = "src/temp/tempContrato.pdf";
         File tempFile = new File(tempFilePath);
         Files.copy(uploadedInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING); // Usar REPLACE_EXISTING para reemplazar archivo si ya existe
 
@@ -107,5 +108,102 @@ public class CGreetingResource {
             .type("text/plain")  // Establecer explícitamente el tipo de contenido
             .build();
         }
+    }  */
+
+    public Response analyzeContract(@FormDataParam("pdf") InputStream uploadedInputStream) throws Exception {
+        // Ruta del archivo temporal
+        String tempDirPath = "src/temp";
+        String tempFilePath = tempDirPath + "/tempContrato.pdf";
+    
+        try {
+            // Verificar si el directorio existe, si no, crearlo
+            File tempDir = new File(tempDirPath);
+            if (!tempDir.exists()) {
+                boolean dirCreated = tempDir.mkdirs();
+                if (!dirCreated) {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity("No se pudo crear el directorio temporal: " + tempDirPath)
+                            .build();
+                }
+                // Asegurar permisos de lectura y escritura
+                tempDir.setReadable(true, false);
+                tempDir.setWritable(true, false);
+            }
+    
+            // Guardar el archivo temporalmente
+            File tempFile = new File(tempFilePath);
+            Files.copy(uploadedInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    
+            // Procesar el PDF con la lógica de pdf_form_filler
+            boolean isFinished = PdfFormFiller.loadPdfData(tempFilePath);
+    
+            if (!isFinished) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("Error al procesar el contrato").build();
+            }
+    
+            String PDFtext = PdfFormFiller.extractTextFromPdf(tempFilePath);
+            String[] clausulas = PdfFormFiller.getClausesArrayFromText(PDFtext);
+            String JSONAmandar = JsonGenerator.generateJson(clausulas);
+    
+            String responseServer = HttpClientUtil.sendJsonToEvaluate(JSONAmandar);
+            System.out.println(responseServer);
+    
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Map<String, Object>>>() {}.getType();
+            List<Map<String, Object>> clauses = gson.fromJson(responseServer, listType);
+    
+            List<Map<String, Object>> violatedClauses = new ArrayList<>();
+            boolean isViolation = false;
+    
+            for (Map<String, Object> clause : clauses) {
+                boolean violation = (boolean) clause.get("violation");
+                if (violation) {
+                    isViolation = true;
+                    violatedClauses.add(clause);
+                }
+            }
+    
+            if (isViolation) {
+                List<Map<String, String>> articlesWithLaws = new ArrayList<>();
+                Set<String> processedArticles = new HashSet<>();
+    
+                LeyesExtractor leyesExtractor = new LeyesExtractor("src/assets/csv_leyes.csv");
+                for (Map<String, Object> violatedClause : violatedClauses) {
+                    String article = (String) violatedClause.get("article");
+                    if (!processedArticles.contains(article)) {
+                        String ley = leyesExtractor.obtenerTextoLey(article);
+                        Map<String, String> articleWithLaw = Map.of("article", article, "ley", ley);
+                        articlesWithLaws.add(articleWithLaw);
+                        processedArticles.add(article);
+                    }
+                }
+    
+                String templateText = PdfGenerator.loadTemplate();
+                String content = PdfGenerator.fillTemplate(templateText, PdfFormFiller.sellerDict);
+                content = PdfGenerator.fillTemplate(content, PdfFormFiller.buyerDict);
+                content = PdfGenerator.fillArticles(content, articlesWithLaws);
+    
+                String outputFilePath = "src/temp/DemandaGenerado.pdf";
+                PdfGenerator.createPdf(content, outputFilePath);
+    
+                File outputFile = new File(outputFilePath);
+                return Response.ok(outputFile)
+                        .type("application/pdf")
+                        .header("Content-Disposition", "attachment; filename=DemandaGenerado.pdf")
+                        .build();
+    
+            } else {
+                String messageOk = "No se han encontrado ninguna violación en las cláusulas.";
+                return Response.ok(messageOk)
+                        .type("text/plain")
+                        .build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Ocurrió un error procesando el contrato: " + e.getMessage())
+                    .build();
+        }
     }
+    
 }

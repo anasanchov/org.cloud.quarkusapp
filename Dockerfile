@@ -2,7 +2,7 @@
 FROM openjdk:21-slim AS build
 WORKDIR /project
 COPY pom.xml .
-COPY src ./src
+COPY . .
 RUN apt-get update && apt-get install -y maven && mvn -B clean package -DskipTests
 
 # Usa una imagen base de OpenJDK 21 para el entorno de ejecución
